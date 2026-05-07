@@ -15,6 +15,8 @@ public interface LoanRequestService {
 
     List<LoanRequest> getUserLoanRequestsByUsername(String username);
 
+    List<LoanRequest> getAllLoanRequests(String username);
+    
     List<LoanRequest> getAllLoanRequests();
 
     LoanRequest getLoanRequestById(Long id);
@@ -35,7 +37,7 @@ public interface LoanRequestService {
 
     void exportLoansToExcel(OutputStream os) throws IOException;
 
-    int importLoansFromExcel(MultipartFile file,String username) throws IOException;
+    int importLoansFromExcel(MultipartFile file) throws IOException;
 
     Map<String, Object>  getDashboardStats(String username);
 

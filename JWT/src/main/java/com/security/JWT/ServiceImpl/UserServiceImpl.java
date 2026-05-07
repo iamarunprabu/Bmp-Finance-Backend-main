@@ -14,8 +14,6 @@ import java.util.Random;
 import static org.apache.commons.lang3.RandomStringUtils.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -62,12 +60,14 @@ import freemarker.template.TemplateException;
 import freemarker.template.TemplateNotFoundException;
 import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @Transactional
 @Qualifier("userDetailsService")
 public class UserServiceImpl implements UserService, UserDetailsService {
-    private Logger LOGGER = LoggerFactory.getLogger(getClass());
+    //private log log = logFactory.getlog(getClass());
     private UserRepository userRepository;
     private BCryptPasswordEncoder passwordEncoder;
     private LoginAttemptService loginAttemptService;
@@ -85,7 +85,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findUserByUsername(username);
         if (user == null) {
-            LOGGER.error(NO_USER_FOUND_BY_USERNAME + username);
+            log.error(NO_USER_FOUND_BY_USERNAME + username);
             throw new UsernameNotFoundException(NO_USER_FOUND_BY_USERNAME + username);
         } else {
             validateLoginAttempt(user);
@@ -93,7 +93,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             user.setLastLoginDate(new Date());
             userRepository.save(user);
             UserPrincipal userPrincipal = new UserPrincipal(user);
-            LOGGER.info(FOUND_USER_BY_USERNAME + username);
+            log.info(FOUND_USER_BY_USERNAME + username);
             return userPrincipal;
         }
     }
@@ -118,8 +118,9 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         user.setAuthorities(ROLE_USER.getAuthorities());
         user.setProfileImageUrl(getTemporaryProfileImageUrl(username));
         userRepository.save(user);
-        LOGGER.info("New user password: " + password);
-        emailService.sendNewPasswordEmail(firstName, password, email,user.getProfileImageUrl(),  "");
+        log.info("New user password: " + password);
+      emailService.sendNewPasswordEmail(firstName, password, email,user.getProfileImageUrl(),  "");
+      //  emailService.sendEmail();
         return user;
     }
 
@@ -142,7 +143,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         user.setProfileImageUrl(getTemporaryProfileImageUrl(username));
         userRepository.save(user);
         saveProfileImage(user, profileImage);
-        LOGGER.info("New user password: " + password);
+        log.info("New user password: " + password);
         return user;
     }
 
@@ -171,7 +172,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         String password = generatePassword();
         user.setPassword(encodePassword(password));
         userRepository.save(user);
-        LOGGER.info("New user password: " + password);
+        log.info("New user password: " + password);
         String appUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString() + PUBLIC_URLS[0];
         emailService.sendNewPasswordEmail(user.getFirstName(), password, user.getEmail(), getTemporaryProfileImageUrl(email), appUrl);
     }
@@ -202,7 +203,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     public void deleteUser(String username) throws IOException {
         User user = userRepository.findUserByUsername(username);
         if (user == null) {
-            LOGGER.error(NO_USER_FOUND_BY_USERNAME + username);
+            log.error(NO_USER_FOUND_BY_USERNAME + username);
             throw new UsernameNotFoundException(NO_USER_FOUND_BY_USERNAME + username);
         } 
         Path userFolder = Paths.get(USER_FOLDER + user.getUsername()).toAbsolutePath().normalize();
@@ -218,13 +219,13 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             Path userFolder = Paths.get(USER_FOLDER + user.getUsername()).toAbsolutePath().normalize();
             if(!Files.exists(userFolder)) {
                 Files.createDirectories(userFolder);
-                LOGGER.info(DIRECTORY_CREATED + userFolder);
+                log.info(DIRECTORY_CREATED + userFolder);
             }
             Files.deleteIfExists(Paths.get(userFolder + user.getUsername() + DOT + JPG_EXTENSION));
             Files.copy(profileImage.getInputStream(), userFolder.resolve(user.getUsername() + DOT + JPG_EXTENSION), REPLACE_EXISTING);
             user.setProfileImageUrl(setProfileImageUrl(user.getUsername()));
             userRepository.save(user);
-            LOGGER.info(FILE_SAVED_IN_FILE_SYSTEM + profileImage.getOriginalFilename());
+            log.info(FILE_SAVED_IN_FILE_SYSTEM + profileImage.getOriginalFilename());
         }
     }
 

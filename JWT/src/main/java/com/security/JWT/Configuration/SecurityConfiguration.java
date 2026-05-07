@@ -56,6 +56,8 @@ public class SecurityConfiguration {
             .cors(cors -> cors.configurationSource(corsConfigurationSource())) 
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                // Use HttpMethod.OPTIONS instead of RequestMethod.name()
+                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS).permitAll() 
                 .requestMatchers(SecurityConstant.PUBLIC_URLS).permitAll()
                 .anyRequest().authenticated()
             )
@@ -67,7 +69,6 @@ public class SecurityConfiguration {
 
         return http.build();
     }
-
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -91,7 +92,7 @@ public class SecurityConfiguration {
     public CorsConfigurationSource corsConfigurationSource() {
     	CorsConfiguration configuration = new CorsConfiguration();
     	configuration.setAllowedOrigins(Arrays.asList("*"));
-    	configuration.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","PATCH"));
+    	configuration.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","PATCH","OPTIONS"));
     	configuration.setAllowedHeaders(Arrays.asList("*"));
     	configuration.setExposedHeaders(Arrays.asList("jwt-Token","Authorization"));
     	configuration.setAllowCredentials(false);

@@ -39,7 +39,8 @@ public class User implements Serializable{
     private Date joinDate;
     private String role; 
     @JdbcTypeCode(SqlTypes.JSON)    
-    @Column(columnDefinition = "BLOB")
+    //@Column(columnDefinition = "BLOB")
+    @Column(columnDefinition = "TEXT")
     private String[] authorities;
     private boolean isActive;
     private boolean isNotLocked;

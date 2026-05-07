@@ -21,6 +21,7 @@ import freemarker.template.TemplateException;
 import freemarker.template.TemplateNotFoundException;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.data.domain.Page;
 import org.apache.tomcat.util.http.parser.Authorization;
@@ -54,6 +55,7 @@ import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.IMAGE_JPEG_VALUE;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
+@Slf4j
 @RestController
 @RequestMapping(path = { "/user"})
 public class UserResourceController extends ExceptionHandling {
@@ -79,6 +81,7 @@ public class UserResourceController extends ExceptionHandling {
         User loginUser = userService.findUserByUsername(user.getUsername());
         UserPrincipal userPrincipal = new UserPrincipal(loginUser);
         HttpHeaders jwtHeader = getJwtHeader(userPrincipal);
+        log.debug("User Login Successfully:{}"+loginUser.getUsername()+"profileUrl"+loginUser.getProfileImageUrl());
         return new ResponseEntity<>(loginUser, jwtHeader, OK);
     }
     
@@ -91,6 +94,7 @@ public class UserResourceController extends ExceptionHandling {
 																									// blacklist
 			tokenBlackListService.blacklistToken(token); // Clear security context
 			SecurityContextHolder.clearContext();
+			log.debug("-------------------User Logout Successfully -------------------");
 			return response(OK, SecurityConstant.USER_LOGGED_OUT_SUCCESSFULLY);
 		} // If no token provided, still clear context and return success
 		SecurityContextHolder.clearContext();
@@ -101,6 +105,7 @@ public class UserResourceController extends ExceptionHandling {
     @PostMapping("/register")
     public ResponseEntity<User> register(@RequestBody User user) throws UserNotFoundException, UsernameExistException, EmailExistException, MessagingException, TemplateNotFoundException, MalformedTemplateNameException, ParseException, IOException, TemplateException {
         User newUser = userService.register(user.getFirstName(), user.getLastName(), user.getUsername(), user.getEmail());
+        log.debug("-------------------User Register Successfully Successfully -------------------");
         return new ResponseEntity<>(newUser, OK);
     }
     

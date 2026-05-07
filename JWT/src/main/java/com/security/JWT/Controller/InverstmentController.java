@@ -4,6 +4,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -53,4 +56,29 @@ public class InverstmentController {
 		service.deleteInvestment(id, userDetails.getUsername());
 		return ResponseEntity.ok("Deleted successfully");
 	}
+
+	@GetMapping("/userInverstmentAmt")
+	public ResponseEntity<List<Inverstment>> getCurrentMonthInvestmentsByUsername(@RequestParam("username") String username) {
+		return ResponseEntity.ok(service.getCurrentMonthInvestmentsByUsername(username));
+	}
+
+	@GetMapping("/all")
+	public ResponseEntity<List<Inverstment>> getAllInvestments(@RequestParam("month") int month, 
+	        @RequestParam("year") int year) throws Exception  {
+			List<Inverstment> investments = service.getInvestmentsByMonthYear(month, year);
+			return ResponseEntity.ok(investments);
+		
+	}
+	
+	@GetMapping("/report/pdf") 
+	public ResponseEntity<byte[]> downloadInvestmentPDF( 
+			 @RequestParam("month") int month, 
+		        @RequestParam("year") int year) throws Exception {
+		 byte[] pdfBytes = service.generateInvestmentReport(month, year); 
+		HttpHeaders headers = new HttpHeaders(); 
+		headers.setContentType(MediaType.APPLICATION_PDF); 
+		headers.setContentDisposition(ContentDisposition.attachment() .filename("investment_report_" + month + "_" + year + ".pdf").build());
+		return ResponseEntity.ok() .headers(headers) .body(pdfBytes); 
+		
+		} 
 }

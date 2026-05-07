@@ -61,9 +61,19 @@ public class LoanRequestServiceImpl implements LoanRequestService {
     }
 
     @Override
-    public List<LoanRequest> getAllLoanRequests() {
-        return loanRequestRepository.findAll();
-    }
+	public List<LoanRequest> getAllLoanRequests(String username) {
+		if (username == null || username.isEmpty()) {
+			throw new RuntimeException("Username is required");
+		}
+
+		return loanRequestRepository.findByUserId(username);
+	}
+    
+    @Override
+	public List<LoanRequest> getAllLoanRequests() {
+
+		return loanRequestRepository.findByStatus(Status.APPROVED);
+	}
 
     @Override
     public LoanRequest getLoanRequestById(Long id) {
@@ -184,7 +194,7 @@ public class LoanRequestServiceImpl implements LoanRequestService {
     }
 
     @Override
-    public int importLoansFromExcel(MultipartFile file , String username) throws IOException {
+    public int importLoansFromExcel(MultipartFile file) throws IOException {
 
         int uploadCount = 0;
         //User user = userRepository.findUserByUsername(username);

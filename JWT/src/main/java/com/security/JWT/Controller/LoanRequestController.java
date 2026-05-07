@@ -35,7 +35,7 @@ public class LoanRequestController {
 	}
 
 	@PostMapping("/request")
-	@PreAuthorize("hasAuthority('user:create')")
+	@PreAuthorize("hasAuthority('user:read')")
 	public ResponseEntity<Map<String, Object>> createLoanRequest(@RequestBody LoanRequest loanRequest,
 			Authentication authentication) {
 		LoanRequest createdRequest = loanRequestService.createLoanRequest(loanRequest, authentication.getName());
@@ -54,6 +54,12 @@ public class LoanRequestController {
 	}
 
 	@GetMapping("/requests/all")
+	@PreAuthorize("hasAuthority('user:create')")
+	public ResponseEntity<List<LoanRequest>> getAllLoanRequests(@RequestParam(name = "username",defaultValue = "") String username) {
+		return new ResponseEntity<>(loanRequestService.getAllLoanRequests(username), OK);
+	}
+	
+	@GetMapping("/requests/allLoan")
 	@PreAuthorize("hasAuthority('user:create')")
 	public ResponseEntity<List<LoanRequest>> getAllLoanRequests() {
 		return new ResponseEntity<>(loanRequestService.getAllLoanRequests(), OK);
@@ -83,10 +89,10 @@ public class LoanRequestController {
 	}
 
 	@GetMapping("/requests/filter")
-	@PreAuthorize("hasAuthority('user:create')")
+	@PreAuthorize("hasAnyAuthority('user:create','user:read')")
 	public ResponseEntity<List<LoanRequest>> filterLoanRequests(
 			@RequestParam(name = "status", required = false) String status,
-			@RequestParam(name = "username", required = false) String username) {
+			@RequestParam(name = "username", required = false,defaultValue = "") String username) {
 		List<LoanRequest> results = loanRequestService.filterLoanRequests(status, username);
 		return new ResponseEntity<>(results, OK);
 	}
@@ -95,14 +101,14 @@ public class LoanRequestController {
 	@GetMapping("/dashboard")
 	@PreAuthorize("hasAnyAuthority('user:create','user:read')")
 	public ResponseEntity<Map<String, Object>> getDashboardStats(
-			@RequestParam(name = "username", required = false) String username) {
+			@RequestParam(name = "username", required = false, defaultValue = "") String username) {
 	    return ResponseEntity.ok(loanRequestService.getDashboardStats(username));
 	}
 
 	@GetMapping("/monthly-report")
 	@PreAuthorize("hasAnyAuthority('user:create','user:read')")
 	public ResponseEntity<Map<String, Object>> getMonthlyReport(
-			@RequestParam(name = "username",  required = false) String username) {
+			@RequestParam(name = "username",  required = false, defaultValue = "") String username) {
 	    return ResponseEntity.ok(loanRequestService.getMonthlyReport(username));
 	}
 
@@ -128,11 +134,10 @@ public class LoanRequestController {
 
 	@PostMapping("/import-excel")
 	@PreAuthorize("hasAuthority('user:create')")
-	public ResponseEntity<Map<String, Object>> importLoanRequestsFromExcel(@RequestParam("file") MultipartFile file,
-			@RequestParam(name = "username") String username) {
+	public ResponseEntity<Map<String, Object>> importLoanRequestsFromExcel(@RequestParam("file") MultipartFile file) {
 		Map<String, Object> response = new HashMap<>();
 		try {
-			int importedCount = loanRequestService.importLoansFromExcel(file, username);
+			int importedCount = loanRequestService.importLoansFromExcel(file);
 			response.put("success", true);
 			response.put("message", importedCount + " loan requests imported successfully");
 			return new ResponseEntity<>(response, HttpStatus.OK);
